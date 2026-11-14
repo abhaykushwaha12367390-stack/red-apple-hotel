@@ -1,0 +1,207 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Reusable Hardened Primitives
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 4 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidDateString(val) {
+      return val is string && val.size() == 10 && val.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email == 'abhaykushwaha12367390@gmail.com' && request.auth.token.email_verified == true)
+      );
+    }
+
+    // 3. Entity Validation Blueprints (Anti-Update-Gap)
+    function isValidBooking(data) {
+      return data.keys().hasAll([
+        'id',
+        'guestName',
+        'mobileNumber',
+        'roomId',
+        'roomName',
+        'checkIn',
+        'checkOut',
+        'adults',
+        'children',
+        'guestsCount',
+        'bookingDate',
+        'status',
+        'createdAt'
+      ]) && data.keys().hasOnly([
+        'id',
+        'guestName',
+        'mobileNumber',
+        'emailAddress',
+        'roomId',
+        'roomName',
+        'checkIn',
+        'checkOut',
+        'nights',
+        'estimatedAmount',
+        'currencySymbol',
+        'adults',
+        'children',
+        'guestsCount',
+        'bookingDate',
+        'status',
+        'specialRequests',
+        'arrivalWindow',
+        'idDocumentType',
+        'idDocumentMasked',
+        'hasPrivateIdAttachment',
+        'whatsappNotificationStatus',
+        'emailNotificationStatus',
+        'createdAt'
+      ]) &&
+      isValidId(data.id) && data.id.size() <= 64 &&
+      data.guestName is string && data.guestName.size() >= 2 && data.guestName.size() <= 120 &&
+      data.mobileNumber is string && data.mobileNumber.size() >= 7 && data.mobileNumber.size() <= 30 &&
+      (!('emailAddress' in data) || (data.emailAddress is string && data.emailAddress.size() <= 160)) &&
+      isValidId(data.roomId) && data.roomId.size() <= 64 &&
+      data.roomName is string && data.roomName.size() >= 2 && data.roomName.size() <= 120 &&
+      isValidDateString(data.checkIn) &&
+      isValidDateString(data.checkOut) &&
+      (!('nights' in data) || (data.nights is number && data.nights >= 1 && data.nights <= 365)) &&
+      (!('estimatedAmount' in data) || (data.estimatedAmount is number && data.estimatedAmount >= 0 && data.estimatedAmount <= 10000000)) &&
+      (!('currencySymbol' in data) || (data.currencySymbol is string && data.currencySymbol.size() <= 6)) &&
+      data.adults is number && data.adults >= 1 && data.adults <= 20 &&
+      data.children is number && data.children >= 0 && data.children <= 20 &&
+      data.guestsCount is number && data.guestsCount >= 1 && data.guestsCount <= 40 &&
+      isValidDateString(data.bookingDate) &&
+      data.status in ['Pending', 'Confirmed', 'Rejected', 'Cancelled', 'Completed'] &&
+      (!('specialRequests' in data) || (data.specialRequests is string && data.specialRequests.size() <= 1000)) &&
+      (!('arrivalWindow' in data) || (data.arrivalWindow is string && data.arrivalWindow.size() <= 80)) &&
+      (!('idDocumentType' in data) || (data.idDocumentType is string && data.idDocumentType.size() <= 60)) &&
+      (!('idDocumentMasked' in data) || (data.idDocumentMasked is string && data.idDocumentMasked.size() <= 40)) &&
+      (!('hasPrivateIdAttachment' in data) || data.hasPrivateIdAttachment is bool) &&
+      (!('whatsappNotificationStatus' in data) || data.whatsappNotificationStatus in ['pending', 'sent', 'failed', 'not_configured']) &&
+      (!('emailNotificationStatus' in data) || data.emailNotificationStatus in ['pending', 'sent', 'failed', 'not_configured']) &&
+      data.createdAt is timestamp;
+    }
+
+    function isValidEnquiry(data) {
+      return data.keys().hasAll([
+        'id',
+        'customerName',
+        'phoneNumber',
+        'email',
+        'subject',
+        'message',
+        'enquiryDate',
+        'status',
+        'createdAt'
+      ]) && data.keys().hasOnly([
+        'id',
+        'customerName',
+        'phoneNumber',
+        'email',
+        'subject',
+        'message',
+        'roomContext',
+        'enquiryDate',
+        'status',
+        'createdAt'
+      ]) &&
+      isValidId(data.id) && data.id.size() <= 64 &&
+      data.customerName is string && data.customerName.size() >= 2 && data.customerName.size() <= 120 &&
+      data.phoneNumber is string && data.phoneNumber.size() >= 3 && data.phoneNumber.size() <= 40 &&
+      data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+      data.subject is string && data.subject.size() >= 2 && data.subject.size() <= 200 &&
+      data.message is string && data.message.size() >= 4 && data.message.size() <= 2000 &&
+      (!('roomContext' in data) || (data.roomContext is string && data.roomContext.size() <= 120)) &&
+      isValidDateString(data.enquiryDate) &&
+      data.status in ['Unread', 'Read', 'Resolved'] &&
+      data.createdAt is timestamp;
+    }
+
+    function isValidAdminUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'createdAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'role', 'createdAt']) &&
+        isValidId(data.uid) &&
+        data.email is string && data.email.size() >= 5 && data.email.size() <= 160 &&
+        data.role == 'owner' &&
+        data.createdAt is timestamp;
+    }
+
+    // 4. Collection Rules
+    match /bookings/{bookingId} {
+      allow create: if isValidId(bookingId) &&
+        isValidBooking(incoming()) &&
+        incoming().id == bookingId &&
+        incoming().status == 'Pending' &&
+        incoming().createdAt == request.time;
+
+      allow get: if isValidId(bookingId) && isAdmin();
+      allow list: if isAdmin();
+
+      allow update: if isValidId(bookingId) &&
+        isAdmin() &&
+        isValidBooking(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'status',
+          'whatsappNotificationStatus',
+          'emailNotificationStatus'
+        ]);
+
+      allow delete: if isValidId(bookingId) && isAdmin();
+    }
+
+    match /enquiries/{enquiryId} {
+      allow create: if isValidId(enquiryId) &&
+        isValidEnquiry(incoming()) &&
+        incoming().id == enquiryId &&
+        incoming().status == 'Unread' &&
+        incoming().createdAt == request.time;
+
+      allow get: if isValidId(enquiryId) && isAdmin();
+      allow list: if isAdmin();
+
+      allow update: if isValidId(enquiryId) &&
+        isAdmin() &&
+        isValidEnquiry(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+
+      allow delete: if isValidId(enquiryId) && isAdmin();
+    }
+
+    match /admins/{uid} {
+      allow get: if isValidId(uid) && isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(uid) && isAdmin() && isValidAdminUser(incoming()) && incoming().uid == uid && incoming().createdAt == request.time;
+      allow update: if isValidId(uid) && isAdmin() && isValidAdminUser(incoming()) && incoming().uid == existing().uid && incoming().createdAt == existing().createdAt;
+      allow delete: if isValidId(uid) && isAdmin();
+    }
+
+    match /test/{docId} {
+      allow get: if docId == 'connection';
+    }
+  }
+}

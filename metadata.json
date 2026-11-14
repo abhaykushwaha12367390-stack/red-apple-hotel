@@ -1,0 +1,8 @@
+{
+  "name": "YOUR HOTEL NAME — Luxury Hotel & Residences",
+  "description": "Five-star luxury hotel website featuring a cinematic video hero, sticky transparent-to-solid navigation, and architectural section foundations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
