@@ -231,7 +231,12 @@ export function Footer({ onNavigate, onOpenAdminPortal }: FooterProps) {
                     className="h-4 w-4 shrink-0 text-[#C9A96E]"
                     aria-hidden="true"
                   />
-                  <span>WhatsApp: +{cleanWhatsappDigits || hotelInfo.whatsapp}</span>
+                  <span>
+                    WhatsApp:{' '}
+                    {hotelInfo.whatsapp.trim().startsWith('+')
+                      ? hotelInfo.whatsapp.trim()
+                      : `+${cleanWhatsappDigits || hotelInfo.whatsapp}`}
+                  </span>
                 </a>
               </li>
             </ul>

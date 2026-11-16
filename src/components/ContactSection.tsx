@@ -131,7 +131,9 @@ export function ContactSection({ onOpenBooking }: ContactSectionProps) {
     {
       id: 'whatsapp',
       title: 'WhatsApp',
-      value: `+${cleanWhatsappDigits || hotelInfo.whatsapp}`,
+      value: hotelInfo.whatsapp.trim().startsWith('+')
+        ? hotelInfo.whatsapp.trim()
+        : `+${cleanWhatsappDigits || hotelInfo.whatsapp}`,
       helper: 'Instant Guest Assistance',
       actionLabel: 'Open WhatsApp',
       href: whatsappHref,
@@ -344,7 +346,7 @@ export function ContactSection({ onOpenBooking }: ContactSectionProps) {
                         required
                         value={mobileNumber}
                         onChange={(e) => setMobileNumber(e.target.value)}
-                        placeholder="+00 000 000 0000"
+                        placeholder="+91 98765 43210"
                         className="mt-2 w-full rounded-lg border border-white/15 bg-[#0B0B0D] px-4 py-3 text-sm text-white placeholder:text-white/35 tabular-nums focus:border-[#C9A96E] focus:outline-none"
                       />
                     </div>

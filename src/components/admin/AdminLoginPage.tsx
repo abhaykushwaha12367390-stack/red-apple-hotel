@@ -139,7 +139,7 @@ export function AdminLoginPage({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="owner@yourhotelname.com"
+                placeholder="owner@redapplehotel.com"
                 className="mt-2 w-full rounded-lg border border-white/15 bg-[#0B0D12] px-4 py-3 text-sm text-white placeholder:text-white/35 focus:border-[#C9A96E] focus:outline-none"
               />
             </div>

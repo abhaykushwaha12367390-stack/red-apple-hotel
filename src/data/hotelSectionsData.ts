@@ -3,7 +3,7 @@ import heroLobbyImage from '@/src/assets/images/hero_hotel_poster_1794602841540.
 
 import stdInterior from '@/src/assets/images/std_room_interior_1794603123901.jpg';
 import stdBathroom from '@/src/assets/images/std_room_bathroom_1794603125827.jpg';
-import dlxBed from '@/src/assets/images/dlx_room_bed_1794603126021.jpg';
+import dlxInterior from '@/src/assets/images/dlx_room_interior_1794603126117.jpg';
 import sdlxBathroom from '@/src/assets/images/sdlx_room_bathroom_1794603127885.jpg';
 import famLounge from '@/src/assets/images/fam_room_lounge_1794603130889.jpg';
 import premLiving from '@/src/assets/images/prem_suite_living_1794603131556.jpg';
@@ -25,7 +25,7 @@ export const ABOUT_SECTION_DATA = {
   heading: 'About Our Hotel',
   subtitle: 'Where Comfort Meets Luxury',
   photoSrc: aboutArchitectureImage,
-  photoAlt: 'Sunlit limestone courtyard and bespoke walnut library salon at YOUR HOTEL NAME',
+  photoAlt: 'Sunlit limestone courtyard and bespoke walnut library salon at RED APPLE HOTEL',
   photoCaption: 'Courtyard Library & Architectural Terrace',
   introduction:
     'Thoughtfully designed around sunlit courtyards, warm natural stone, and tailored timber joinery, our hotel offers an intimate sanctuary for discerning travelers seeking quiet residential comfort.',
@@ -230,10 +230,10 @@ export const GALLERY_PHOTOS: GalleryPhoto[] = [
   {
     id: 'gal-room-deluxe',
     category: 'Rooms',
-    title: 'Deluxe King Bedroom',
-    description: 'Fluted walnut headboard with champagne-brass pendant lights',
-    src: dlxBed,
-    alt: 'Deluxe Room king-size bed with fluted walnut headboard',
+    title: 'Deluxe Room Interior',
+    description: 'Oak-paneled retreat with plush king comfort and warm lighting',
+    src: dlxInterior,
+    alt: 'Deluxe Room interior at RED APPLE HOTEL',
   },
   {
     id: 'gal-room-family',

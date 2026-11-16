@@ -13,6 +13,7 @@ import {
   setDoc,
   updateDoc,
   type Firestore,
+  type FirestoreSettings,
   type Unsubscribe,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -21,12 +22,20 @@ import type { BookingRecord, BookingStatus, EnquiryRecord, EnquiryStatus } from 
 const app = initializeApp(firebaseConfig);
 
 function createFirestoreInstance(): Firestore {
+  const settings: FirestoreSettings & { useFetchStreams?: boolean } = {
+    experimentalForceLongPolling: true,
+    useFetchStreams: true,
+  };
+
+  if (typeof window !== 'undefined' && window.location?.host) {
+    settings.host = window.location.host;
+    settings.ssl = window.location.protocol === 'https:';
+  }
+
   try {
     return initializeFirestore(
       app,
-      {
-        experimentalForceLongPolling: true,
-      },
+      settings,
       firebaseConfig.firestoreDatabaseId
     );
   } catch {

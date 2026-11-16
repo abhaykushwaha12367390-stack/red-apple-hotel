@@ -21,7 +21,7 @@ export function AboutSection({ onExploreRooms }: AboutSectionProps) {
               <img
                 src={ABOUT_SECTION_DATA.photoSrc}
                 alt={ABOUT_SECTION_DATA.photoAlt}
-                referrerPolicy="no-referrer"
+                referrerPolicy="no-referrer"   
                 className="h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
               />
               <div

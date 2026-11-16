@@ -154,11 +154,22 @@ export function RoomContactModal({
                   <p className="text-xs font-medium uppercase tracking-wider text-white/55">
                     Hotel Reservations Desk
                   </p>
-                  <p className="mt-1 font-display text-xl text-white">
-                    {room.name} ·{' '}
-                    <span className="text-[#E2CFA4] tabular-nums">
-                      {room.currencySymbol}
-                      {room.pricePerNight}/night
+                  <p className="mt-1 flex flex-wrap items-baseline gap-2 font-display text-xl text-white">
+                    <span>{room.name} ·</span>
+                    <span className="inline-flex items-baseline gap-1.5 tabular-nums">
+                      <span className="font-sans text-xs text-white/55 line-through">
+                        {room.currencySymbol}1,999
+                      </span>
+                      <span className="font-sans text-xs text-white/55" aria-hidden="true">
+                        →
+                      </span>
+                      <span className="text-[#E2CFA4]">
+                        {room.currencySymbol}
+                        {room.pricePerNight.toLocaleString('en-IN')}/night
+                      </span>
+                    </span>
+                    <span className="rounded bg-[#C9A96E]/20 px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wider uppercase text-[#E2CFA4]">
+                      50% OFF
                     </span>
                   </p>
                 </div>
@@ -264,7 +275,7 @@ export function RoomContactModal({
                       type="text"
                       value={guestContact}
                       onChange={(e) => setGuestContact(e.target.value)}
-                      placeholder="+00 000 000 0000 or guest@example.com"
+                      placeholder="+91 98765 43210 or guest@example.com"
                       className="mt-2 w-full rounded-lg border border-white/15 bg-[#131316] px-3.5 py-2.5 text-sm text-white placeholder:text-white/35 focus:border-[#C9A96E] focus:outline-none"
                     />
                   </div>

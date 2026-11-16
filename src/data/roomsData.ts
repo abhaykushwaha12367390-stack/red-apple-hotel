@@ -4,8 +4,7 @@ import stdBathroom from '@/src/assets/images/std_room_bathroom_1794603125827.jpg
 import stdWindow from '@/src/assets/images/std_room_window_1794603125736.jpg';
 
 import dlxInterior from '@/src/assets/images/dlx_room_interior_1794603126117.jpg';
-import dlxBed from '@/src/assets/images/dlx_room_bed_1794603126021.jpg';
-import dlxBathroom from '@/src/assets/images/dlx_room_bathroom_1794603126630.jpg';
+import dlxBathroom from '@/src/assets/images/dlx_room_bathroom_1794603126630.jpg.jpeg';
 import dlxBalcony from '@/src/assets/images/dlx_room_balcony_1794603127019.jpg';
 
 import sdlxInterior from '@/src/assets/images/sdlx_room_interior_1794603127545.jpg';
@@ -15,7 +14,7 @@ import sdlxLounge from '@/src/assets/images/sdlx_room_lounge_1794603128574.jpg';
 
 import execInterior from '@/src/assets/images/exec_room_interior_1794603128473.jpg';
 import execBed from '@/src/assets/images/exec_room_bed_1794603129314.jpg';
-import execWorkspace from '@/src/assets/images/exec_room_workspace_1794603129541.jpg';
+import execWorkspace from '@/src/assets/images/exec_room_workspace_1794603129541.jpg-1.jpeg';
 import execBathroom from '@/src/assets/images/exec_room_bathroom_1794603129861.jpg';
 
 import famInterior from '@/src/assets/images/fam_room_interior_1794603130520.jpg';
@@ -69,8 +68,8 @@ export const ROOMS_DATA: RoomCategory[] = [
       'Refined quiet comfort featuring warm walnut joinery, a serene window alcove, and bespoke limestone bath.',
     fullDescription:
       'Thoughtfully proportioned for solo travelers and couples, the Standard Room balances warm alabaster finishes with handcrafted walnut furniture. Tall courtyard windows draw soft natural light across a dedicated reading nook and an inviting queen-size bed dressed in crisp Egyptian cotton.',
-    pricePerNight: 220,
-    currencySymbol: '$',
+    pricePerNight: 999,
+    currencySymbol: '₹',
     roomSize: '30 m² / 323 sq ft',
     bedType: '1 Queen Bed',
     maxGuests: '2 Adults',
@@ -125,8 +124,8 @@ export const ROOMS_DATA: RoomCategory[] = [
       'Elevated oak-paneled retreat with a plush king bed, private sunset balcony, and dark marble bath.',
     fullDescription:
       'Set on upper floors for tranquil garden and city views, the Deluxe Room welcomes guests with warm oak wall paneling, a sculpted leather armchair, and sliding glass doors opening onto a furnished private balcony.',
-    pricePerNight: 310,
-    currencySymbol: '$',
+    pricePerNight: 999,
+    currencySymbol: '₹',
     roomSize: '42 m² / 452 sq ft',
     bedType: '1 King Bed',
     maxGuests: '2 Adults · 1 Child',
@@ -157,11 +156,6 @@ export const ROOMS_DATA: RoomCategory[] = [
         caption: 'Oak-Paneled Living Space',
       },
       {
-        src: dlxBed,
-        alt: 'Deluxe Room king bed with fluted walnut headboard and pendant lighting',
-        caption: 'King Bed & Brass Pendants',
-      },
-      {
         src: dlxBathroom,
         alt: 'Deluxe Room dark veined marble bathroom with recessed cove lighting',
         caption: 'Veined Marble Vanity & Shower',
@@ -181,8 +175,8 @@ export const ROOMS_DATA: RoomCategory[] = [
       'Expansive corner sanctuary offering floor-to-ceiling twilight vistas, curved lounge, and spa soaking tub.',
     fullDescription:
       'Positioned along our signature glass corners, the Super Deluxe Room pairs an elevated timber sleeping platform with an intimate bouclé seating salon and a spa-inspired bathroom anchored by a deep sculpted soaking tub.',
-    pricePerNight: 420,
-    currencySymbol: '$',
+    pricePerNight: 999,
+    currencySymbol: '₹',
     roomSize: '56 m² / 603 sq ft',
     bedType: '1 Grand King Bed',
     maxGuests: '3 Adults',
@@ -237,8 +231,8 @@ export const ROOMS_DATA: RoomCategory[] = [
       'Tailored dark-walnut residence with dedicated skyline workspace, espresso bar, and steam shower.',
     fullDescription:
       'Designed for extended stays and executive travel, the Executive Room features smoked-oak architectural millwork, a separate skyline work desk with ergonomic leather seating, and direct privileges to the private Executive Club Lounge.',
-    pricePerNight: 490,
-    currencySymbol: '$',
+    pricePerNight: 999,
+    currencySymbol: '₹',
     roomSize: '62 m² / 667 sq ft',
     bedType: '1 Executive King Bed',
     maxGuests: '2 Adults · 1 Child',
@@ -293,8 +287,8 @@ export const ROOMS_DATA: RoomCategory[] = [
       'Sunlit two-zone family suite uniting a master king bedroom, twin alcove, and dining balcony.',
     fullDescription:
       'Crafted so families never compromise on tranquility or space, the Family Room pairs a primary king bedroom and private twin sleeping alcove with a generous living and dining salon opening onto a sunlit balcony.',
-    pricePerNight: 580,
-    currencySymbol: '$',
+    pricePerNight: 999,
+    currencySymbol: '₹',
     roomSize: '84 m² / 904 sq ft',
     bedType: '1 King Bed + Twin Alcove',
     maxGuests: '2 Adults · 2 Children',
@@ -348,9 +342,9 @@ export const ROOMS_DATA: RoomCategory[] = [
     shortDescription:
       'Our flagship skyline residence featuring a marble fireplace salon, spa bath, and private rooftop terrace.',
     fullDescription:
-      'Crowning the top floor of YOUR HOTEL NAME, the Premium Suite delivers residential grandeur at its finest: a chandelier-lit living salon with black marble fireplace, a silk-draped master bedroom, a skyline soaking bath, and an exclusive rooftop terrace.',
-    pricePerNight: 950,
-    currencySymbol: '$',
+      'Crowning the top floor of RED APPLE HOTEL, the Premium Suite delivers residential grandeur at its finest: a chandelier-lit living salon with black marble fireplace, a silk-draped master bedroom, a skyline soaking bath, and an exclusive rooftop terrace.',
+    pricePerNight: 999,
+    currencySymbol: '₹',
     roomSize: '135 m² / 1,453 sq ft',
     bedType: '1 Bespoke Emperor King Bed',
     maxGuests: '4 Guests',

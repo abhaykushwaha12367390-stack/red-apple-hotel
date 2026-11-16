@@ -330,21 +330,82 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
     null
   );
 
-  const [rooms, setRooms] = useState<AdminRoomCategory[]>(() =>
-    hotelApiService.loadState('rooms', buildInitialRooms())
-  );
+  const [rooms, setRooms] = useState<AdminRoomCategory[]>(() => {
+    const defaults = buildInitialRooms();
+    const stored = hotelApiService.loadState('rooms', defaults);
+    return stored.map((room) => {
+      const defaultRoom = defaults.find((d) => d.id === room.id);
+      if (!defaultRoom) return room;
+
+      const cleanedPhotos = room.photos
+        .filter((photo) => !photo.src.includes('dlx_room_bed_1794603126021'))
+        .map((photo) => {
+          if (photo.src.includes('exec_room_workspace_1794603129541.jpg') && !photo.src.includes('-1.jpeg')) {
+            return defaultRoom.photos.find((p) => p.src.includes('exec_room_workspace_1794603129541')) ?? photo;
+          }
+          if (photo.src.includes('dlx_room_bathroom_1794603126630.jpg') && !photo.src.includes('.jpeg')) {
+            return defaultRoom.photos.find((p) => p.src.includes('dlx_room_bathroom_1794603126630')) ?? photo;
+          }
+          return photo;
+        });
+
+      const usesLegacyUsdPricing =
+        room.currencySymbol === '$' ||
+        [220, 310, 420, 490, 580, 950].includes(room.pricePerNight);
+
+      return {
+        ...room,
+        currencySymbol: usesLegacyUsdPricing ? defaultRoom.currencySymbol : room.currencySymbol,
+        pricePerNight: usesLegacyUsdPricing ? defaultRoom.pricePerNight : room.pricePerNight,
+        photos: cleanedPhotos.length > 0 ? cleanedPhotos : defaultRoom.photos,
+      };
+    });
+  });
   const [bookings, setBookings] = useState<BookingRecord[]>(() =>
     hotelApiService.loadState('bookings', buildInitialDemoBookings())
   );
-  const [galleryPhotos, setGalleryPhotos] = useState<AdminGalleryPhoto[]>(() =>
-    hotelApiService.loadState('gallery', GALLERY_PHOTOS)
-  );
+  const [galleryPhotos, setGalleryPhotos] = useState<AdminGalleryPhoto[]>(() => {
+    const stored = hotelApiService.loadState('gallery', GALLERY_PHOTOS);
+    return stored.map((photo) => {
+      if (photo.src.includes('dlx_room_bed_1794603126021')) {
+        return GALLERY_PHOTOS.find((g) => g.id === photo.id) ?? GALLERY_PHOTOS[1] ?? photo;
+      }
+      return photo;
+    });
+  });
   const [services, setServices] = useState<AdminServiceItem[]>(() =>
     hotelApiService.loadState('services', HOTEL_SERVICES_DATA)
   );
-  const [hotelInfo, setHotelInfo] = useState<HotelSettingsInfo>(() =>
-    hotelApiService.loadState('settings', buildInitialSettings())
-  );
+  const [hotelInfo, setHotelInfo] = useState<HotelSettingsInfo>(() => {
+    const defaults = buildInitialSettings();
+    const stored = hotelApiService.loadState('settings', defaults);
+    const isPlaceholderName =
+      !stored.hotelName?.trim() ||
+      stored.hotelName.trim().toUpperCase() === 'YOUR HOTEL NAME';
+    const isPlaceholderPhone =
+      !stored.phone?.trim() ||
+      stored.phone.trim() === '+00 000 000 0000' ||
+      /^0+$/.test(stored.phone.replace(/[^\d]/g, ''));
+    const isPlaceholderWhatsapp =
+      !stored.whatsapp?.trim() ||
+      /^0+$/.test(stored.whatsapp.replace(/[^\d]/g, ''));
+    const isPlaceholderAddress =
+      !stored.address?.trim() ||
+      stored.address.trim().startsWith('Your Hotel Street Address');
+    const isPlaceholderEmail =
+      !stored.email?.trim() ||
+      stored.email.trim().toLowerCase() === 'reservations@yourhotelname.com';
+
+    return {
+      ...defaults,
+      ...stored,
+      hotelName: isPlaceholderName ? defaults.hotelName : stored.hotelName,
+      phone: isPlaceholderPhone ? defaults.phone : stored.phone,
+      whatsapp: isPlaceholderWhatsapp ? defaults.whatsapp : stored.whatsapp,
+      address: isPlaceholderAddress ? defaults.address : stored.address,
+      email: isPlaceholderEmail ? defaults.email : stored.email,
+    };
+  });
   const [enquiries, setEnquiries] = useState<EnquiryRecord[]>(() =>
     hotelApiService.loadState('enquiries', buildInitialDemoEnquiries())
   );
@@ -541,7 +602,7 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
         checkOut: input.checkOut,
         nights,
         estimatedAmount,
-        currencySymbol: input.currencySymbol || '$',
+        currencySymbol: input.currencySymbol || '₹',
         adults: input.adults,
         children: input.children,
         guestsCount: input.adults + input.children,

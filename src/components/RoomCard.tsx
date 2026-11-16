@@ -49,9 +49,20 @@ export function RoomCard({
             </div>
 
             <div className="text-right shrink-0">
-              <p className="font-display text-2xl font-semibold text-[#111113] tabular-nums">
-                {room.currencySymbol}
-                {room.pricePerNight}
+              <span className="inline-block rounded bg-[#8A6D3B]/12 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase text-[#8A6D3B]">
+                50% OFF
+              </span>
+              <p className="mt-0.5 flex items-baseline justify-end gap-1.5 tabular-nums">
+                <span className="text-xs font-medium text-[#6B6B72] line-through">
+                  {room.currencySymbol}1,999
+                </span>
+                <span className="text-xs text-[#6B6B72]" aria-hidden="true">
+                  →
+                </span>
+                <span className="font-display text-2xl font-semibold text-[#111113]">
+                  {room.currencySymbol}
+                  {room.pricePerNight.toLocaleString('en-IN')}
+                </span>
               </p>
               <p className="text-[11px] font-medium text-[#6B6B72]">
                 per night

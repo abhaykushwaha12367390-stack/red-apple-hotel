@@ -191,7 +191,7 @@ export function BookingModal({
       setSubmittedBookingId(createdBooking.id);
       setSubmittedAmountText(
         `${createdBooking.currencySymbol}${createdBooking.estimatedAmount.toLocaleString(
-          'en-US'
+          'en-IN'
         )} (${createdBooking.nights} night${
           createdBooking.nights === 1 ? '' : 's'
         })`
@@ -278,8 +278,13 @@ export function BookingModal({
                   <div>
                     <dt className="text-white/55">Requested Room</dt>
                     <dd className="mt-0.5 font-medium text-white">
-                      {activeRoom?.name} ({activeRoom?.currencySymbol}
-                      {activeRoom?.pricePerNight}/night)
+                      {activeRoom?.name} (
+                      <span className="text-white/55 line-through">
+                        {activeRoom?.currencySymbol}1,999
+                      </span>{' '}
+                      → {activeRoom?.currencySymbol}
+                      {activeRoom?.pricePerNight.toLocaleString('en-IN')}/night ·{' '}
+                      <span className="text-[#E2CFA4]">50% OFF</span>)
                     </dd>
                   </div>
                   <div>
@@ -371,7 +376,7 @@ export function BookingModal({
                     required
                     value={mobileNumber}
                     onChange={(e) => setMobileNumber(e.target.value)}
-                    placeholder="+00 000 000 0000"
+                    placeholder="+91 98765 43210"
                     className="mt-2 w-full rounded-lg border border-white/15 bg-[#0A0A0B] px-3.5 py-2.5 text-sm text-white placeholder:text-white/35 tabular-nums focus:border-[#C9A96E] focus:outline-none"
                   />
                 </div>
@@ -413,8 +418,10 @@ export function BookingModal({
                   >
                     {availableRooms.map((room) => (
                       <option key={room.id} value={room.id}>
-                        {room.name} ({room.currencySymbol}
-                        {room.pricePerNight} / night)
+                        {room.name} ({room.currencySymbol}1,999 →{' '}
+                        {room.currencySymbol}
+                        {room.pricePerNight.toLocaleString('en-IN')} / night ·
+                        50% OFF)
                       </option>
                     ))}
                   </select>

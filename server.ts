@@ -596,8 +596,144 @@ async function dispatchNotifications(
   return { log: nextLog, deduplicated: false };
 }
 
+function getConfiguredFirebaseProjectId(): string {
+  try {
+    const cfgPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
+    if (fs.existsSync(cfgPath)) {
+      const parsed = JSON.parse(fs.readFileSync(cfgPath, 'utf8')) as {
+        projectId?: string;
+      };
+      if (parsed.projectId) return parsed.projectId;
+    }
+  } catch {
+    // Ignore read error
+  }
+  return '';
+}
+
+function readRawRequestBody(req: Request): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer | string) => {
+      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+const FORWARDED_FIRESTORE_REQ_HEADERS = [
+  'content-type',
+  'authorization',
+  'x-goog-api-key',
+  'x-goog-request-params',
+  'google-cloud-resource-prefix',
+  'x-firebase-gmpid',
+  'x-firebase-appcheck',
+  'x-goog-api-client',
+  'accept',
+];
+
+const FORWARDED_FIRESTORE_RES_HEADERS = [
+  'content-type',
+  'x-http-session-id',
+  'x-client-wire-protocol',
+  'cache-control',
+];
+
 async function startServer() {
   const app = express();
+  const configuredProjectId = getConfiguredFirebaseProjectId();
+
+  // Same-origin Cloud Firestore proxy (WebChannel & REST) so browser clients
+  // behind proxies, VPNs, or strict ISPs never time out reaching firestore.googleapis.com
+  const handleFirestoreProxy = async (req: Request, res: Response) => {
+    if (!configuredProjectId) {
+      return res.status(503).json({ error: 'Firebase project is not configured.' });
+    }
+
+    const reqUrl = req.originalUrl || req.url;
+    if (reqUrl.startsWith('/v1/projects/')) {
+      const expectedPrefix = `/v1/projects/${encodeURIComponent(configuredProjectId)}/databases/`;
+      if (!reqUrl.startsWith(expectedPrefix) && !reqUrl.startsWith(`/v1/projects/${configuredProjectId}/databases/`)) {
+        return res.status(403).json({ error: 'Forbidden Firestore project path.' });
+      }
+    } else if (reqUrl.startsWith('/google.firestore.v1.Firestore/')) {
+      const dbQuery = typeof req.query.database === 'string' ? req.query.database : '';
+      if (dbQuery && !dbQuery.startsWith(`projects/${configuredProjectId}/databases/`)) {
+        return res.status(403).json({ error: 'Forbidden Firestore database target.' });
+      }
+    } else {
+      return res.status(404).end();
+    }
+
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+
+    const abortController = new AbortController();
+    res.on('close', () => {
+      if (!res.writableEnded) {
+        abortController.abort();
+      }
+    });
+
+    try {
+      const headers: Record<string, string> = {};
+      for (const name of FORWARDED_FIRESTORE_REQ_HEADERS) {
+        const val = req.headers[name];
+        if (typeof val === 'string' && val) {
+          headers[name] = val;
+        }
+      }
+
+      const hasBody = !['GET', 'HEAD'].includes(req.method.toUpperCase());
+      const bodyBuffer = hasBody ? await readRawRequestBody(req) : undefined;
+
+      const targetUrl = `https://firestore.googleapis.com${reqUrl}`;
+      const upstreamRes = await fetch(targetUrl, {
+        method: req.method,
+        headers,
+        body: bodyBuffer && bodyBuffer.length > 0 ? new Uint8Array(bodyBuffer) : undefined,
+        signal: abortController.signal,
+      });
+
+      res.status(upstreamRes.status);
+      for (const name of FORWARDED_FIRESTORE_RES_HEADERS) {
+        const val = upstreamRes.headers.get(name);
+        if (val) {
+          res.setHeader(name, val);
+        }
+      }
+
+      if (!upstreamRes.body) {
+        return res.end();
+      }
+
+      const reader = upstreamRes.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value && value.length > 0) {
+          res.write(Buffer.from(value));
+        }
+      }
+      return res.end();
+    } catch (err) {
+      if (abortController.signal.aborted) {
+        return;
+      }
+      console.error('[FirestoreProxyError]', err);
+      if (!res.headersSent) {
+        return res.status(502).json({ error: 'Upstream Firestore proxy error.' });
+      }
+      return res.end();
+    }
+  };
+
+  app.all('/google.firestore.v1.Firestore/*', handleFirestoreProxy);
+  app.all('/v1/projects/*', handleFirestoreProxy);
+
   app.use(express.json({ limit: '1mb' }));
 
   // Health & Config Readiness Endpoint (never exposes secrets)

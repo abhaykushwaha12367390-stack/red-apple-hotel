@@ -89,9 +89,20 @@ export function RoomDetailsModal({
 
           <div className="flex items-center gap-5 shrink-0">
             <div className="hidden sm:block text-right">
-              <p className="font-display text-2xl font-semibold text-[#111113] tabular-nums">
-                {room.currencySymbol}
-                {room.pricePerNight}
+              <span className="inline-block rounded bg-[#8A6D3B]/12 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase text-[#8A6D3B]">
+                50% OFF
+              </span>
+              <p className="mt-0.5 flex items-baseline justify-end gap-1.5 tabular-nums">
+                <span className="text-xs font-medium text-[#6B6B72] line-through">
+                  {room.currencySymbol}1,999
+                </span>
+                <span className="text-xs text-[#6B6B72]" aria-hidden="true">
+                  →
+                </span>
+                <span className="font-display text-2xl font-semibold text-[#111113]">
+                  {room.currencySymbol}
+                  {room.pricePerNight.toLocaleString('en-IN')}
+                </span>
               </p>
               <p className="text-xs text-[#6B6B72]">per night</p>
             </div>
@@ -121,12 +132,25 @@ export function RoomDetailsModal({
           {/* Description & Mobile Price */}
           <div>
             <div className="mb-4 flex items-baseline justify-between border-b border-black/10 pb-3 sm:hidden">
-              <span className="text-xs font-medium uppercase tracking-wider text-[#6B6B72]">
-                Nightly Rate
-              </span>
-              <span className="font-display text-2xl font-semibold text-[#111113] tabular-nums">
-                {room.currencySymbol}
-                {room.pricePerNight}{' '}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium uppercase tracking-wider text-[#6B6B72]">
+                  Nightly Rate
+                </span>
+                <span className="rounded bg-[#8A6D3B]/12 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase text-[#8A6D3B]">
+                  50% OFF
+                </span>
+              </div>
+              <span className="flex items-baseline gap-1.5 font-display text-2xl font-semibold text-[#111113] tabular-nums">
+                <span className="font-sans text-xs font-medium text-[#6B6B72] line-through">
+                  {room.currencySymbol}1,999
+                </span>
+                <span className="font-sans text-xs text-[#6B6B72]" aria-hidden="true">
+                  →
+                </span>
+                <span>
+                  {room.currencySymbol}
+                  {room.pricePerNight.toLocaleString('en-IN')}
+                </span>{' '}
                 <span className="font-sans text-xs font-normal text-[#6B6B72]">
                   / night
                 </span>

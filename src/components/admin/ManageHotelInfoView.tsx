@@ -28,7 +28,7 @@ export function ManageHotelInfoView() {
     event.preventDefault();
     updateHotelInfo({
       ...formState,
-      hotelName: formState.hotelName.trim() || 'YOUR HOTEL NAME',
+      hotelName: formState.hotelName.trim() || 'RED APPLE HOTEL',
       address: formState.address.trim(),
       phone: formState.phone.trim(),
       whatsapp: formState.whatsapp.trim(),

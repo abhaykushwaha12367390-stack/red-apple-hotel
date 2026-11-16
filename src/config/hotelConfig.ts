@@ -1,4 +1,5 @@
 import heroPosterImage from '@/src/assets/images/hero_hotel_poster_1794602841540.jpg';
+import heroHotelVideo from '@/src/assets/images/hero_hotel_video.mp4.mp4';
 import aboutArchitectureImage from '@/src/assets/images/about_hotel_architecture_1794602842204.jpg';
 
 export interface NavItem {
@@ -11,13 +12,14 @@ export interface NavItem {
  * Editable Hotel Contact Placeholders
  * Replace these placeholders with your actual hotel contact details.
  */
-export const HOTEL_NAME = 'YOUR HOTEL NAME';
-export const HOTEL_PHONE = '+00 000 000 0000';
-export const HOTEL_WHATSAPP = '00000000000';
-export const HOTEL_EMAIL = 'reservations@yourhotelname.com';
-export const HOTEL_ADDRESS = 'Your Hotel Street Address, Your City, Your Country';
+export const HOTEL_NAME = 'RED APPLE HOTEL';
+export const HOTEL_PHONE = '01145730170';
+export const HOTEL_WHATSAPP = '+91 88601 51690';
+export const HOTEL_EMAIL = 'reservations@redapplehotel.com';
+export const HOTEL_ADDRESS =
+  'FLOOR. T.A. 102, Tughlakabad Extension Opposite of Khana Khazana';
 export const HOTEL_DESCRIPTION =
-  'An intimate five-star sanctuary blending timeless stone architecture, tranquil rooms, and attentive round-the-clock hospitality.';
+  'An intimate sanctuary blending thoughtful comfort, well-appointed rooms, and attentive round-the-clock hospitality.';
 
 /**
  * Optional: Paste your custom Google Maps Embed URL here.
@@ -54,7 +56,7 @@ export const HOTEL_CONFIG = {
   hotelName: HOTEL_NAME,
   tagline: 'Five-Star Sanctuary · Architectural Hospitality',
   description: HOTEL_DESCRIPTION,
-  heroVideoSrc: '/videos/hotel-intro.mp4',
+  heroVideoSrc: heroHotelVideo,
   heroPosterSrc: heroPosterImage,
   aboutImageSrc: aboutArchitectureImage,
   heroHeading: 'Experience Luxury. Feel at Home.',
@@ -62,7 +64,7 @@ export const HOTEL_CONFIG = {
     'Discover exceptional comfort, beautiful rooms and unforgettable hospitality.',
   contact: {
     address: HOTEL_ADDRESS,
-    cityCountry: 'Editable Property Location',
+    cityCountry: 'Tughlakabad Extension, New Delhi',
     phone: HOTEL_PHONE,
     whatsappNumber: HOTEL_WHATSAPP,
     email: HOTEL_EMAIL,
