@@ -337,14 +337,17 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
       const defaultRoom = defaults.find((d) => d.id === room.id);
       if (!defaultRoom) return room;
 
+      const isBundledAsset = (src: string) =>
+        src.includes('/src/assets/images/') || src.includes('/assets/');
+
       const cleanedPhotos = room.photos
         .filter((photo) => !photo.src.includes('dlx_room_bed_1794603126021'))
-        .map((photo) => {
-          if (photo.src.includes('exec_room_workspace_1794603129541.jpg') && !photo.src.includes('-1.jpeg')) {
-            return defaultRoom.photos.find((p) => p.src.includes('exec_room_workspace_1794603129541')) ?? photo;
-          }
-          if (photo.src.includes('dlx_room_bathroom_1794603126630.jpg') && !photo.src.includes('.jpeg')) {
-            return defaultRoom.photos.find((p) => p.src.includes('dlx_room_bathroom_1794603126630')) ?? photo;
+        .map((photo, index) => {
+          if (
+            isBundledAsset(photo.src) &&
+            !defaultRoom.photos.some((dp) => dp.src === photo.src)
+          ) {
+            return defaultRoom.photos[index] ?? photo;
           }
           return photo;
         });
@@ -367,8 +370,12 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
   const [galleryPhotos, setGalleryPhotos] = useState<AdminGalleryPhoto[]>(() => {
     const stored = hotelApiService.loadState('gallery', GALLERY_PHOTOS);
     return stored.map((photo) => {
-      if (photo.src.includes('dlx_room_bed_1794603126021')) {
-        return GALLERY_PHOTOS.find((g) => g.id === photo.id) ?? GALLERY_PHOTOS[1] ?? photo;
+      const defaultPhoto = GALLERY_PHOTOS.find((g) => g.id === photo.id);
+      const isBundledAsset =
+        photo.src.includes('/src/assets/images/') ||
+        photo.src.includes('/assets/');
+      if (defaultPhoto && isBundledAsset && photo.src !== defaultPhoto.src) {
+        return { ...photo, src: defaultPhoto.src };
       }
       return photo;
     });

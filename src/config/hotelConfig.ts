@@ -1,6 +1,6 @@
 import heroPosterImage from '@/src/assets/images/hero_hotel_poster_1794602841540.jpg';
 import heroHotelVideo from '@/src/assets/images/hero_hotel_video.mp4.mp4';
-import aboutArchitectureImage from '@/src/assets/images/about_hotel_architecture_1794602842204.jpg';
+import aboutArchitectureImage from '@/src/assets/images/Whatsapp_image40.jpg.png';
 
 export interface NavItem {
   label: string;

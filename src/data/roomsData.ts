@@ -1,31 +1,31 @@
-import stdInterior from '@/src/assets/images/std_room_interior_1794603123901.jpg';
-import stdBed from '@/src/assets/images/std_room_bed_1794603125459.jpg';
-import stdBathroom from '@/src/assets/images/std_room_bathroom_1794603125827.jpg';
-import stdWindow from '@/src/assets/images/std_room_window_1794603125736.jpg';
+import stdInterior from '@/src/assets/images/WhatsApp_image38.jpg.jpeg';
+import stdBed from '@/src/assets/images/WhatsApp_image37.jpg.jpeg';
+import stdBathroom from '@/src/assets/images/WhatsApp_image36.jpg.jpeg';
+import stdWindow from '@/src/assets/images/WhatsApp_image39.jpg.jpeg';
 
-import dlxInterior from '@/src/assets/images/dlx_room_interior_1794603126117.jpg';
-import dlxBathroom from '@/src/assets/images/dlx_room_bathroom_1794603126630.jpg.jpeg';
-import dlxBalcony from '@/src/assets/images/dlx_room_balcony_1794603127019.jpg';
+import dlxInterior from '@/src/assets/images/WhatsApp_image12.jpg.jpeg';
+import dlxBathroom from '@/src/assets/images/fam_room_interior_1794603130520.jpg.jpeg';
+import dlxBalcony from '@/src/assets/images/dlx_room_bathroom_1794603126630.jpg-1.jpeg';
 
-import sdlxInterior from '@/src/assets/images/sdlx_room_interior_1794603127545.jpg';
-import sdlxBed from '@/src/assets/images/sdlx_room_bed_1794603127640.jpg';
-import sdlxBathroom from '@/src/assets/images/sdlx_room_bathroom_1794603127885.jpg';
-import sdlxLounge from '@/src/assets/images/sdlx_room_lounge_1794603128574.jpg';
+import sdlxInterior from '@/src/assets/images/WhatsApp_image33.jpg.jpeg';
+import sdlxBed from '@/src/assets/images/WhatsApp_image32.jpg.jpeg';
+import sdlxBathroom from '@/src/assets/images/WhatsApp_image31.jpg.jpeg';
+import sdlxLounge from '@/src/assets/images/WhatsApp_image34.jpg.jpeg';
 
-import execInterior from '@/src/assets/images/exec_room_interior_1794603128473.jpg';
-import execBed from '@/src/assets/images/exec_room_bed_1794603129314.jpg';
-import execWorkspace from '@/src/assets/images/exec_room_workspace_1794603129541.jpg-1.jpeg';
-import execBathroom from '@/src/assets/images/exec_room_bathroom_1794603129861.jpg';
+import execInterior from '@/src/assets/images/WhatsApp_image15.jpg.jpeg';
+import execBed from '@/src/assets/images/WhatsApp_image14.jpg.jpeg';
+import execWorkspace from '@/src/assets/images/WhatsApp_image16.jpg.jpeg';
+import execBathroom from '@/src/assets/images/WhatsApp_image13.jpg.jpeg';
 
-import famInterior from '@/src/assets/images/fam_room_interior_1794603130520.jpg';
-import famBeds from '@/src/assets/images/fam_room_beds_1794603130229.jpg';
-import famLounge from '@/src/assets/images/fam_room_lounge_1794603130889.jpg';
+import famInterior from '@/src/assets/images/WhatsApp_image19.jpg.jpeg';
+import famBeds from '@/src/assets/images/WhatsApp_image18.jpg.jpeg';
+import famLounge from '@/src/assets/images/WhatsApp_image20.jpg.jpeg';
 import famBathroom from '@/src/assets/images/fam_room_bathroom_1794603131630.jpg';
 
-import premLiving from '@/src/assets/images/prem_suite_living_1794603131556.jpg';
-import premBedroom from '@/src/assets/images/prem_suite_bedroom_1794603131689.jpg';
-import premBath from '@/src/assets/images/prem_suite_bath_1794603132279.jpg';
-import premTerrace from '@/src/assets/images/prem_suite_terrace_1794603133045.jpg';
+import premLiving from '@/src/assets/images/WhatsApp_image29.jpg.jpeg';
+import premBedroom from '@/src/assets/images/WhatsApp_image28.jpg.jpeg';
+import premBath from '@/src/assets/images/WhatsApp_image27.jpg.jpeg';
+import premTerrace from '@/src/assets/images/WhatsApp_image30.jpg.jpeg';
 
 export interface RoomPhoto {
   src: string;

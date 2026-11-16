@@ -1,21 +1,21 @@
-import aboutArchitectureImage from '@/src/assets/images/about_hotel_architecture_1794602842204.jpg';
+import aboutArchitectureImage from '@/src/assets/images/Whatsapp_image40.jpg.png';
 import heroLobbyImage from '@/src/assets/images/hero_hotel_poster_1794602841540.jpg';
 
-import stdInterior from '@/src/assets/images/std_room_interior_1794603123901.jpg';
-import stdBathroom from '@/src/assets/images/std_room_bathroom_1794603125827.jpg';
-import dlxInterior from '@/src/assets/images/dlx_room_interior_1794603126117.jpg';
-import sdlxBathroom from '@/src/assets/images/sdlx_room_bathroom_1794603127885.jpg';
-import famLounge from '@/src/assets/images/fam_room_lounge_1794603130889.jpg';
-import premLiving from '@/src/assets/images/prem_suite_living_1794603131556.jpg';
-import premBath from '@/src/assets/images/prem_suite_bath_1794603132279.jpg';
-import premTerrace from '@/src/assets/images/prem_suite_terrace_1794603133045.jpg';
+import stdInterior from '@/src/assets/images/WhatsApp_image38.jpg.jpeg';
+import stdBathroom from '@/src/assets/images/WhatsApp_image35.jpg.jpeg';
+import dlxInterior from '@/src/assets/images/WhatsApp_image12.jpg.jpeg';
+import sdlxBathroom from '@/src/assets/images/WhatsApp_image31.jpg.jpeg';
+import famLounge from '@/src/assets/images/WhatsApp_image20.jpg.jpeg';
+import premLiving from '@/src/assets/images/WhatsApp_image29.jpg.jpeg';
+import premBath from '@/src/assets/images/WhatsApp_image27.jpg.jpeg';
+import premTerrace from '@/src/assets/images/WhatsApp_image30.jpg.jpeg';
 
-import receptionDeskImg from '@/src/assets/images/gallery_reception_desk_1794603613430.jpg';
-import receptionFoyerImg from '@/src/assets/images/gallery_reception_foyer_1794603613990.jpg';
-import restaurantDiningImg from '@/src/assets/images/gallery_restaurant_dining_1794603614215.jpg';
-import restaurantBarImg from '@/src/assets/images/gallery_restaurant_bar_1794603613952.jpg';
-import facilitySpaImg from '@/src/assets/images/gallery_facility_spa_1794603614952.jpg';
-import facilityEntranceImg from '@/src/assets/images/gallery_facility_entrance_1794603615026.jpg';
+import receptionDeskImg from '@/src/assets/images/WhatsApp_image23.jpg.jpeg';
+import receptionFoyerImg from '@/src/assets/images/WhatsApp_image24.jpg.jpeg';
+import restaurantDiningImg from '@/src/assets/images/WhatsApp_image26.jpg.jpeg';
+import restaurantBarImg from '@/src/assets/images/WhatsApp_image25.jpg.jpeg';
+import facilitySpaImg from '@/src/assets/images/WhatsApp_image22.jpg.jpeg';
+import facilityEntranceImg from '@/src/assets/images/WhatsApp_image21.jpg.jpeg';
 
 /**
  * Editable About Us Content & Placeholder Counters
