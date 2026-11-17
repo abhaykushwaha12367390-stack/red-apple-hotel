@@ -631,7 +631,7 @@ export function ManageBookingsView() {
 
                   <div className="rounded-lg border border-slate-200 bg-white p-3">
                     <p className="font-semibold text-slate-800">
-                      Formspree ({selectedLog?.email.recipient || 'kmalkushwaha353@gmail.com'})
+                      Formspree ({selectedLog?.email.recipient || 'yogeshjee1987@gmail.com'})
                     </p>
                     <p className="mt-1 text-[11px] text-slate-600">
                       Status:{' '}

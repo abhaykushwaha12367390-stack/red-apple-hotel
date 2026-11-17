@@ -3,6 +3,7 @@ import {
   Calendar,
   Clock,
   FileText,
+  Loader2,
   ShieldCheck,
   Upload,
   Users,
@@ -23,6 +24,22 @@ const ID_DOCUMENT_TYPES = [
   "Driver's License",
   'Provide at Hotel Check-In',
 ] as const;
+
+interface SubmittedBookingSummary {
+  bookingId: string;
+  guestName: string;
+  roomName: string;
+  currencySymbol: string;
+  pricePerNight: number;
+  checkIn: string;
+  checkOut: string;
+  amountText: string;
+  adults: number;
+  children: number;
+  mobileNumber: string;
+  idSummary: string;
+  arrivalWindow: string;
+}
 
 export function BookingModal({
   isOpen,
@@ -59,9 +76,10 @@ export function BookingModal({
 
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingBookingId, setPendingBookingId] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [submittedBookingId, setSubmittedBookingId] = useState('');
-  const [submittedAmountText, setSubmittedAmountText] = useState('');
+  const [submittedSummary, setSubmittedSummary] =
+    useState<SubmittedBookingSummary | null>(null);
 
   useEffect(() => {
     if (preselectedRoomId) {
@@ -116,6 +134,29 @@ export function BookingModal({
     return `${'•'.repeat(trimmed.length - 4)}${trimmed.slice(-4)}`;
   };
 
+  const resetFormFields = () => {
+    const freshToday = new Date().toISOString().split('T')[0];
+    const freshTomorrow = new Date(Date.now() + 86400000)
+      .toISOString()
+      .split('T')[0];
+
+    setFullName('');
+    setMobileNumber('');
+    setEmailAddress('');
+    setCheckIn(freshToday);
+    setCheckOut(freshTomorrow);
+    setAdults(2);
+    setChildren(0);
+    setSelectedRoomId(preselectedRoomId || availableRooms[0]?.id || '');
+    setSpecialRequests(initialNote || '');
+    setIdDocumentType(ID_DOCUMENT_TYPES[0]);
+    setIdDocumentNumber('');
+    setUploadedDocName('');
+    setArrivalWindow('Standard (3:00 PM – 6:00 PM)');
+    setAcceptedTerms(false);
+    setPendingBookingId(null);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (isSubmitting) return;
@@ -148,6 +189,10 @@ export function BookingModal({
       setFormError('At least 1 adult guest is required.');
       return;
     }
+    if (!arrivalWindow.trim()) {
+      setFormError('Please select an estimated arrival window.');
+      return;
+    }
     if (
       idDocumentType !== 'Provide at Hotel Check-In' &&
       !idDocumentNumber.trim() &&
@@ -169,7 +214,9 @@ export function BookingModal({
     setIsSubmitting(true);
 
     try {
-      const createdBooking = await addBooking({
+      const maskedDoc = maskDocumentNumber(idDocumentNumber);
+      const result = await addBooking({
+        existingBookingId: pendingBookingId ?? undefined,
         guestName: fullName.trim(),
         mobileNumber: mobileNumber.trim(),
         emailAddress: emailAddress.trim() || undefined,
@@ -184,19 +231,48 @@ export function BookingModal({
         specialRequests: specialRequests.trim() || undefined,
         arrivalWindow,
         idDocumentType,
-        idDocumentMasked: maskDocumentNumber(idDocumentNumber),
+        idDocumentMasked: maskedDoc,
         hasPrivateIdAttachment: Boolean(uploadedDocName),
       });
 
-      setSubmittedBookingId(createdBooking.id);
-      setSubmittedAmountText(
-        `${createdBooking.currencySymbol}${createdBooking.estimatedAmount.toLocaleString(
+      if (!result.emailDelivered) {
+        setPendingBookingId(result.booking.id);
+        setFormError(
+          result.emailError ||
+            'Unable to send your reservation request email right now. Your entered details have been kept—please try again.'
+        );
+        return;
+      }
+
+      const createdBooking = result.booking;
+      setSubmittedSummary({
+        bookingId: createdBooking.id,
+        guestName: createdBooking.guestName,
+        roomName: activeRoom.name,
+        currencySymbol: createdBooking.currencySymbol,
+        pricePerNight: activeRoom.pricePerNight,
+        checkIn: createdBooking.checkIn,
+        checkOut: createdBooking.checkOut,
+        amountText: `${createdBooking.currencySymbol}${createdBooking.estimatedAmount.toLocaleString(
           'en-IN'
         )} (${createdBooking.nights} night${
           createdBooking.nights === 1 ? '' : 's'
-        })`
-      );
+        })`,
+        adults: createdBooking.adults,
+        children: createdBooking.children,
+        mobileNumber: createdBooking.mobileNumber,
+        idSummary: `${idDocumentType} (${maskedDoc})`,
+        arrivalWindow,
+      });
+
+      resetFormFields();
       setSubmitted(true);
+    } catch (err) {
+      setFormError(
+        err instanceof Error && err.message
+          ? err.message
+          : 'An unexpected error occurred while submitting your reservation. Your entered details have been kept—please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -204,8 +280,7 @@ export function BookingModal({
 
   const handleResetAndClose = () => {
     setSubmitted(false);
-    setSubmittedBookingId('');
-    setSubmittedAmountText('');
+    setSubmittedSummary(null);
     setFormError('');
     onClose();
   };
@@ -252,14 +327,14 @@ export function BookingModal({
 
         {/* Scrollable Content */}
         <div className="overflow-y-auto px-6 py-6 sm:px-8">
-          {submitted ? (
+          {submitted && submittedSummary ? (
             <div className="py-4">
               <div className="rounded-xl border border-[#C9A96E]/35 bg-[#C9A96E]/10 p-6">
                 <div className="flex items-center gap-3">
                   <Clock className="h-6 w-6 shrink-0 text-[#C9A96E]" />
                   <div>
                     <p className="text-xs font-semibold tracking-wider uppercase text-[#E2CFA4]">
-                      Pending Hotel Confirmation{submittedBookingId ? ` · ${submittedBookingId}` : ''}
+                      Pending Hotel Confirmation{submittedSummary.bookingId ? ` · ${submittedSummary.bookingId}` : ''}
                     </p>
                     <h3 className="font-display text-2xl font-medium text-white">
                       Booking Request Received
@@ -268,8 +343,8 @@ export function BookingModal({
                 </div>
 
                 <p className="mt-3 text-sm leading-relaxed text-white/80">
-                  Thank you, <span className="font-medium text-white">{fullName}</span>.
-                  Your reservation request has been recorded for review by our
+                  Thank you, <span className="font-medium text-white">{submittedSummary.guestName}</span>.
+                  Your reservation request has been recorded and sent to our
                   reservations desk. No payment has been charged and room
                   availability will be confirmed directly by our team.
                 </p>
@@ -278,47 +353,47 @@ export function BookingModal({
                   <div>
                     <dt className="text-white/55">Requested Room</dt>
                     <dd className="mt-0.5 font-medium text-white">
-                      {activeRoom?.name} (
+                      {submittedSummary.roomName} (
                       <span className="text-white/55 line-through">
-                        {activeRoom?.currencySymbol}1,999
+                        {submittedSummary.currencySymbol}1,999
                       </span>{' '}
-                      → {activeRoom?.currencySymbol}
-                      {activeRoom?.pricePerNight.toLocaleString('en-IN')}/night ·{' '}
+                      → {submittedSummary.currencySymbol}
+                      {submittedSummary.pricePerNight.toLocaleString('en-IN')}/night ·{' '}
                       <span className="text-[#E2CFA4]">50% OFF</span>)
                     </dd>
                   </div>
                   <div>
                     <dt className="text-white/55">Stay Dates &amp; Estimate</dt>
                     <dd className="mt-0.5 font-medium text-white tabular-nums">
-                      {checkIn} → {checkOut}
-                      {submittedAmountText ? ` · ${submittedAmountText}` : ''}
+                      {submittedSummary.checkIn} → {submittedSummary.checkOut}
+                      {submittedSummary.amountText ? ` · ${submittedSummary.amountText}` : ''}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-white/55">Guests</dt>
                     <dd className="mt-0.5 font-medium text-white tabular-nums">
-                      {adults} Adult{adults > 1 ? 's' : ''}
-                      {children > 0
-                        ? ` · ${children} Child${children > 1 ? 'ren' : ''}`
+                      {submittedSummary.adults} Adult{submittedSummary.adults > 1 ? 's' : ''}
+                      {submittedSummary.children > 0
+                        ? ` · ${submittedSummary.children} Child${submittedSummary.children > 1 ? 'ren' : ''}`
                         : ''}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-white/55">Contact Mobile</dt>
                     <dd className="mt-0.5 font-medium text-white tabular-nums">
-                      {mobileNumber}
+                      {submittedSummary.mobileNumber}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-white/55">Identification On File</dt>
                     <dd className="mt-0.5 font-medium text-white">
-                      {idDocumentType} ({maskDocumentNumber(idDocumentNumber)})
+                      {submittedSummary.idSummary}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-white/55">Estimated Arrival</dt>
                     <dd className="mt-0.5 font-medium text-white">
-                      {arrivalWindow}
+                      {submittedSummary.arrivalWindow}
                     </dd>
                   </div>
                 </dl>
@@ -327,10 +402,13 @@ export function BookingModal({
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setSubmitted(false)}
+                  onClick={() => {
+                    setSubmitted(false);
+                    setSubmittedSummary(null);
+                  }}
                   className="min-h-[44px] rounded-full border border-white/20 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#C9A96E] hover:text-[#E2CFA4] cursor-pointer"
                 >
-                  Modify Request
+                  New Booking Request
                 </button>
                 <button
                   type="button"
@@ -706,11 +784,16 @@ export function BookingModal({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="min-h-[44px] rounded-full bg-[#C9A96E] px-8 py-2.5 text-sm font-semibold text-[#0A0A0B] transition-colors hover:bg-[#E2CFA4] disabled:opacity-60 cursor-pointer"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-[#C9A96E] px-8 py-2.5 text-sm font-semibold text-[#0A0A0B] transition-colors hover:bg-[#E2CFA4] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                 >
-                  {isSubmitting
-                    ? 'Saving Request...'
-                    : 'Confirm Booking Request'}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Submitting Booking...</span>
+                    </>
+                  ) : (
+                    'Confirm Booking Request'
+                  )}
                 </button>
               </div>
             </form>

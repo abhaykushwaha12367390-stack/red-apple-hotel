@@ -124,7 +124,7 @@ export function AdminSettingsView() {
             <p className="text-slate-600">
               Owner Target:{' '}
               <strong>
-                {notificationConfig?.ownerEmail || 'kmalkushwaha353@gmail.com'}
+                {notificationConfig?.ownerEmail || 'yogeshjee1987@gmail.com'}
               </strong>
             </p>
             <p

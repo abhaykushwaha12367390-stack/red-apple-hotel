@@ -5,15 +5,12 @@ import {
   doc,
   getDocFromServer,
   getFirestore,
-  initializeFirestore,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   setDoc,
   updateDoc,
-  type Firestore,
-  type FirestoreSettings,
   type Unsubscribe,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -21,29 +18,7 @@ import type { BookingRecord, BookingStatus, EnquiryRecord, EnquiryStatus } from 
 
 const app = initializeApp(firebaseConfig);
 
-function createFirestoreInstance(): Firestore {
-  const settings: FirestoreSettings & { useFetchStreams?: boolean } = {
-    experimentalForceLongPolling: true,
-    useFetchStreams: true,
-  };
-
-  if (typeof window !== 'undefined' && window.location?.host) {
-    settings.host = window.location.host;
-    settings.ssl = window.location.protocol === 'https:';
-  }
-
-  try {
-    return initializeFirestore(
-      app,
-      settings,
-      firebaseConfig.firestoreDatabaseId
-    );
-  } catch {
-    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
-  }
-}
-
-export const db = createFirestoreInstance();
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 export const googleAuthProvider = new GoogleAuthProvider();
 
@@ -242,7 +217,7 @@ export function subscribeToBookingsAsAdmin(
           checkOut: String(d.checkOut || ''),
           nights: Number(d.nights) || 1,
           estimatedAmount: Number(d.estimatedAmount) || 0,
-          currencySymbol: String(d.currencySymbol || '$'),
+          currencySymbol: String(d.currencySymbol || '₹'),
           adults: Number(d.adults) || 1,
           children: Number(d.children) || 0,
           guestsCount: Number(d.guestsCount) || 1,

@@ -176,6 +176,9 @@ export const hotelApiService = {
           customerPhone: booking.mobileNumber,
           customerEmail: booking.emailAddress || '',
           roomName: booking.roomName,
+          pricePerNight:
+            booking.pricePerNight ??
+            Math.round(booking.estimatedAmount / Math.max(1, booking.nights)),
           checkIn: booking.checkIn,
           checkOut: booking.checkOut,
           nights: booking.nights,
@@ -183,6 +186,8 @@ export const hotelApiService = {
           children: booking.children,
           estimatedAmount: booking.estimatedAmount,
           currencySymbol: booking.currencySymbol,
+          arrivalWindow: booking.arrivalWindow || '',
+          specialRequests: booking.specialRequests || '',
           bookingStatus: booking.status.toUpperCase(),
         }),
       });
@@ -220,6 +225,9 @@ export const hotelApiService = {
             customerPhone: booking.mobileNumber,
             customerEmail: booking.emailAddress || '',
             roomName: booking.roomName,
+            pricePerNight:
+              booking.pricePerNight ??
+              Math.round(booking.estimatedAmount / Math.max(1, booking.nights)),
             checkIn: booking.checkIn,
             checkOut: booking.checkOut,
             nights: booking.nights,
@@ -227,6 +235,8 @@ export const hotelApiService = {
             children: booking.children,
             estimatedAmount: booking.estimatedAmount,
             currencySymbol: booking.currencySymbol,
+            arrivalWindow: booking.arrivalWindow || '',
+            specialRequests: booking.specialRequests || '',
             bookingStatus: booking.status.toUpperCase(),
           }),
         }

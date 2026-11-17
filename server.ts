@@ -40,6 +40,7 @@ interface SanitizedBookingNotificationPayload {
   customerPhone: string;
   customerEmail?: string;
   roomName: string;
+  pricePerNight?: number;
   checkIn: string;
   checkOut: string;
   nights: number;
@@ -47,12 +48,15 @@ interface SanitizedBookingNotificationPayload {
   children: number;
   estimatedAmount: number;
   currencySymbol: string;
+  arrivalWindow?: string;
+  specialRequests?: string;
   bookingStatus: string;
 }
 
 const PORT = 3000;
 const DEFAULT_OWNER_WHATSAPP = '+91 88601 51690';
-const DEFAULT_OWNER_EMAIL = 'kmalkushwaha353@gmail.com';
+const DEFAULT_OWNER_EMAIL = 'yogeshjee1987@gmail.com';
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xaeoqpbw';
 
 const DATA_DIR = path.resolve(process.cwd(), '.data');
 const LOGS_FILE_PATH = path.join(DATA_DIR, 'notification-logs.json');
@@ -111,14 +115,13 @@ function isConfiguredValue(val: string | undefined, placeholderPrefix = 'YOUR_')
 }
 
 function getNotificationConfigStatus() {
-  const formspreeEndpoint = process.env.FORMSPREE_ENDPOINT;
   const whatsappToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const whatsappPhoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const whatsappTemplate = process.env.WHATSAPP_TEMPLATE_NAME?.trim() || '';
 
-  const formspreeConfigured =
-    isConfiguredValue(formspreeEndpoint, 'YOUR_FORMSPREE') &&
-    /^https:\/\/.+/i.test(formspreeEndpoint!.trim());
+  const formspreeConfigured = /^https:\/\/formspree\.io\/f\/.+/i.test(
+    FORMSPREE_ENDPOINT
+  );
 
   const missingWhatsappKeys: string[] = [];
   if (!isConfiguredValue(whatsappToken, 'YOUR_WHATSAPP')) {
@@ -145,9 +148,54 @@ function getNotificationConfigStatus() {
 }
 
 function formatEstimatedAmount(amount: number, currencySymbol: string): string {
-  const sym = currencySymbol || '$';
+  const sym = currencySymbol || '₹';
   const safeAmount = Number.isFinite(amount) ? amount : 0;
-  return `${sym}${safeAmount.toLocaleString('en-US')}`;
+  return `${sym}${safeAmount.toLocaleString('en-IN')}`;
+}
+
+function buildFormspreeEmailMessage(
+  payload: SanitizedBookingNotificationPayload
+): string {
+  const nightlyRate =
+    payload.pricePerNight && payload.pricePerNight > 0
+      ? payload.pricePerNight
+      : Math.round(payload.estimatedAmount / Math.max(1, payload.nights));
+  const roomPriceFormatted = `${formatEstimatedAmount(
+    nightlyRate,
+    payload.currencySymbol
+  )} / night`;
+  const estimatedFormatted = formatEstimatedAmount(
+    payload.estimatedAmount,
+    payload.currencySymbol
+  );
+
+  return [
+    'NEW RESERVATION REQUEST – RED APPLE HOTEL',
+    '',
+    `Booking Reference: ${payload.bookingId}`,
+    'Booking Status: PENDING',
+    '',
+    '--- Guest Contact Information ---',
+    `Guest Full Name: ${payload.customerName}`,
+    `Mobile Number: ${payload.customerPhone}`,
+    `Guest Email Address: ${payload.customerEmail || 'Not provided'}`,
+    '',
+    '--- Stay & Room Details ---',
+    `Selected Room: ${payload.roomName}`,
+    `Room Price: ${roomPriceFormatted}`,
+    `Check-in Date: ${payload.checkIn}`,
+    `Check-out Date: ${payload.checkOut}`,
+    `Total Nights: ${payload.nights}`,
+    `Number of Adults: ${payload.adults}`,
+    `Number of Children: ${payload.children}`,
+    `Arrival Time Window: ${payload.arrivalWindow || 'Standard (3:00 PM – 6:00 PM)'}`,
+    `Estimated Payable Total: ${estimatedFormatted} (${payload.nights} night${
+      payload.nights === 1 ? '' : 's'
+    })`,
+    `Special Requests: ${payload.specialRequests || 'None'}`,
+    '',
+    'Note: Sensitive identification document numbers and ID uploads are never transmitted over email and remain private in the hotel check-in workflow.',
+  ].join('\n');
 }
 
 function buildWhatsAppMessageText(
@@ -356,60 +404,62 @@ async function sendFormspreeEmailNotification(
   previousAttempts = 0
 ): Promise<ChannelAttemptResult> {
   const ownerEmail = getOwnerEmail();
-  const endpoint = process.env.FORMSPREE_ENDPOINT?.trim();
+  const endpoint = FORMSPREE_ENDPOINT;
   const nowIso = new Date().toISOString();
 
-  if (
-    !isConfiguredValue(endpoint, 'YOUR_FORMSPREE') ||
-    !/^https:\/\/.+/i.test(endpoint!)
-  ) {
-    return {
-      status: 'not_configured',
-      attempts: previousAttempts,
-      lastAttemptAt: nowIso,
-      deliveredAt: null,
-      recipient: ownerEmail,
-      missingConfigKeys: ['FORMSPREE_ENDPOINT'],
-      errorMessage:
-        'FORMSPREE_ENDPOINT is not configured in backend environment variables.',
-    };
-  }
-
+  const nightlyRate =
+    payload.pricePerNight && payload.pricePerNight > 0
+      ? payload.pricePerNight
+      : Math.round(payload.estimatedAmount / Math.max(1, payload.nights));
+  const roomPriceFormatted = `${formatEstimatedAmount(
+    nightlyRate,
+    payload.currencySymbol
+  )} / night`;
   const estimatedFormatted = formatEstimatedAmount(
     payload.estimatedAmount,
     payload.currencySymbol
   );
+  const validReplyTo =
+    payload.customerEmail &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.customerEmail)
+      ? payload.customerEmail
+      : undefined;
 
-  // Strictly exclude ID document numbers and uploaded verification files
-  const formspreePayload = {
-    _subject: `New Hotel Booking Request – ${payload.bookingId}`,
-    ...(payload.customerEmail && payload.customerEmail.includes('@')
-      ? { _replyto: payload.customerEmail }
-      : {}),
-    bookingId: payload.bookingId,
-    bookingStatus: 'PENDING',
-    ownerRecipientEmail: ownerEmail,
-    customerName: payload.customerName,
-    customerPhone: payload.customerPhone,
-    customerEmail: payload.customerEmail || 'Not provided',
-    selectedRoom: payload.roomName,
-    checkInDate: payload.checkIn,
-    checkOutDate: payload.checkOut,
-    nights: payload.nights,
-    adults: payload.adults,
-    children: payload.children,
-    estimatedAmount: estimatedFormatted,
-    message: buildWhatsAppMessageText(payload),
-  };
+  // Strictly exclude passport numbers, government ID numbers, and uploaded ID files
+  const formParams = new URLSearchParams();
+  formParams.set('_subject', 'New Reservation Request – RED APPLE HOTEL');
+  if (validReplyTo) {
+    formParams.set('_replyto', validReplyTo);
+  }
+  formParams.set('Hotel Name', 'RED APPLE HOTEL');
+  formParams.set('Booking Reference', payload.bookingId);
+  formParams.set('Booking Status', 'PENDING');
+  formParams.set('Guest Full Name', payload.customerName);
+  formParams.set('Mobile Number', payload.customerPhone);
+  formParams.set('Guest Email Address', validReplyTo || 'Not provided');
+  formParams.set('Selected Room', payload.roomName);
+  formParams.set('Room Price', roomPriceFormatted);
+  formParams.set('Check-in Date', payload.checkIn);
+  formParams.set('Check-out Date', payload.checkOut);
+  formParams.set('Nights', String(payload.nights));
+  formParams.set('Number of Adults', String(payload.adults));
+  formParams.set('Number of Children', String(payload.children));
+  formParams.set(
+    'Arrival Time Window',
+    payload.arrivalWindow || 'Standard (3:00 PM – 6:00 PM)'
+  );
+  formParams.set('Estimated Payable Total', estimatedFormatted);
+  formParams.set('Special Requests', payload.specialRequests || 'None');
+  formParams.set('message', buildFormspreeEmailMessage(payload));
 
   try {
-    const response = await fetchWithBoundedRetry(endpoint!, {
+    const response = await fetchWithBoundedRetry(endpoint, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       },
-      body: JSON.stringify(formspreePayload),
+      body: formParams.toString(),
     });
 
     const data = (await response.json().catch(() => ({}))) as {
@@ -418,7 +468,7 @@ async function sendFormspreeEmailNotification(
       errors?: Array<{ message?: string }>;
     };
 
-    if (!response.ok) {
+    if (!response.ok || data.ok === false) {
       const errText =
         data.error ||
         data.errors?.map((e) => e.message).filter(Boolean).join('; ') ||
@@ -496,6 +546,10 @@ function validateBookingPayload(
         ? body.customerEmail.trim()
         : undefined,
     roomName,
+    pricePerNight:
+      typeof body.pricePerNight === 'number' && Number.isFinite(body.pricePerNight)
+        ? Math.max(0, body.pricePerNight)
+        : undefined,
     checkIn,
     checkOut,
     nights: Math.max(1, Number(body.nights) || 1),
@@ -505,7 +559,15 @@ function validateBookingPayload(
     currencySymbol:
       typeof body.currencySymbol === 'string' && body.currencySymbol.trim()
         ? body.currencySymbol.trim()
-        : '$',
+        : '₹',
+    arrivalWindow:
+      typeof body.arrivalWindow === 'string' && body.arrivalWindow.trim()
+        ? body.arrivalWindow.trim()
+        : undefined,
+    specialRequests:
+      typeof body.specialRequests === 'string' && body.specialRequests.trim()
+        ? body.specialRequests.trim()
+        : undefined,
     bookingStatus: 'PENDING',
   };
 }
@@ -596,143 +658,8 @@ async function dispatchNotifications(
   return { log: nextLog, deduplicated: false };
 }
 
-function getConfiguredFirebaseProjectId(): string {
-  try {
-    const cfgPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
-    if (fs.existsSync(cfgPath)) {
-      const parsed = JSON.parse(fs.readFileSync(cfgPath, 'utf8')) as {
-        projectId?: string;
-      };
-      if (parsed.projectId) return parsed.projectId;
-    }
-  } catch {
-    // Ignore read error
-  }
-  return '';
-}
-
-function readRawRequestBody(req: Request): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on('data', (chunk: Buffer | string) => {
-      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-    });
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
-  });
-}
-
-const FORWARDED_FIRESTORE_REQ_HEADERS = [
-  'content-type',
-  'authorization',
-  'x-goog-api-key',
-  'x-goog-request-params',
-  'google-cloud-resource-prefix',
-  'x-firebase-gmpid',
-  'x-firebase-appcheck',
-  'x-goog-api-client',
-  'accept',
-];
-
-const FORWARDED_FIRESTORE_RES_HEADERS = [
-  'content-type',
-  'x-http-session-id',
-  'x-client-wire-protocol',
-  'cache-control',
-];
-
 async function startServer() {
   const app = express();
-  const configuredProjectId = getConfiguredFirebaseProjectId();
-
-  // Same-origin Cloud Firestore proxy (WebChannel & REST) so browser clients
-  // behind proxies, VPNs, or strict ISPs never time out reaching firestore.googleapis.com
-  const handleFirestoreProxy = async (req: Request, res: Response) => {
-    if (!configuredProjectId) {
-      return res.status(503).json({ error: 'Firebase project is not configured.' });
-    }
-
-    const reqUrl = req.originalUrl || req.url;
-    if (reqUrl.startsWith('/v1/projects/')) {
-      const expectedPrefix = `/v1/projects/${encodeURIComponent(configuredProjectId)}/databases/`;
-      if (!reqUrl.startsWith(expectedPrefix) && !reqUrl.startsWith(`/v1/projects/${configuredProjectId}/databases/`)) {
-        return res.status(403).json({ error: 'Forbidden Firestore project path.' });
-      }
-    } else if (reqUrl.startsWith('/google.firestore.v1.Firestore/')) {
-      const dbQuery = typeof req.query.database === 'string' ? req.query.database : '';
-      if (dbQuery && !dbQuery.startsWith(`projects/${configuredProjectId}/databases/`)) {
-        return res.status(403).json({ error: 'Forbidden Firestore database target.' });
-      }
-    } else {
-      return res.status(404).end();
-    }
-
-    if (req.method === 'OPTIONS') {
-      return res.status(204).end();
-    }
-
-    const abortController = new AbortController();
-    res.on('close', () => {
-      if (!res.writableEnded) {
-        abortController.abort();
-      }
-    });
-
-    try {
-      const headers: Record<string, string> = {};
-      for (const name of FORWARDED_FIRESTORE_REQ_HEADERS) {
-        const val = req.headers[name];
-        if (typeof val === 'string' && val) {
-          headers[name] = val;
-        }
-      }
-
-      const hasBody = !['GET', 'HEAD'].includes(req.method.toUpperCase());
-      const bodyBuffer = hasBody ? await readRawRequestBody(req) : undefined;
-
-      const targetUrl = `https://firestore.googleapis.com${reqUrl}`;
-      const upstreamRes = await fetch(targetUrl, {
-        method: req.method,
-        headers,
-        body: bodyBuffer && bodyBuffer.length > 0 ? new Uint8Array(bodyBuffer) : undefined,
-        signal: abortController.signal,
-      });
-
-      res.status(upstreamRes.status);
-      for (const name of FORWARDED_FIRESTORE_RES_HEADERS) {
-        const val = upstreamRes.headers.get(name);
-        if (val) {
-          res.setHeader(name, val);
-        }
-      }
-
-      if (!upstreamRes.body) {
-        return res.end();
-      }
-
-      const reader = upstreamRes.body.getReader();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value && value.length > 0) {
-          res.write(Buffer.from(value));
-        }
-      }
-      return res.end();
-    } catch (err) {
-      if (abortController.signal.aborted) {
-        return;
-      }
-      console.error('[FirestoreProxyError]', err);
-      if (!res.headersSent) {
-        return res.status(502).json({ error: 'Upstream Firestore proxy error.' });
-      }
-      return res.end();
-    }
-  };
-
-  app.all('/google.firestore.v1.Firestore/*', handleFirestoreProxy);
-  app.all('/v1/projects/*', handleFirestoreProxy);
 
   app.use(express.json({ limit: '1mb' }));
 

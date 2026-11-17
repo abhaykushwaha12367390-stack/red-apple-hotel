@@ -73,6 +73,7 @@ export interface BookingRecord {
   checkIn: string;
   checkOut: string;
   nights: number;
+  pricePerNight?: number;
   estimatedAmount: number;
   currencySymbol: string;
   adults: number;

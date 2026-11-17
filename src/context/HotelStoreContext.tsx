@@ -217,6 +217,7 @@ function calculateStayNights(checkIn: string, checkOut: string): number {
 }
 
 export interface AddBookingInput {
+  existingBookingId?: string;
   guestName: string;
   mobileNumber: string;
   emailAddress?: string;
@@ -233,6 +234,12 @@ export interface AddBookingInput {
   idDocumentType?: string;
   idDocumentMasked?: string;
   hasPrivateIdAttachment?: boolean;
+}
+
+export interface AddBookingResult {
+  booking: BookingRecord;
+  emailDelivered: boolean;
+  emailError?: string;
 }
 
 export interface AddEnquiryInput {
@@ -292,7 +299,7 @@ interface HotelStoreContextValue {
   ) => void;
 
   // Booking Actions
-  addBooking: (input: AddBookingInput) => Promise<BookingRecord>;
+  addBooking: (input: AddBookingInput) => Promise<AddBookingResult>;
   updateBookingStatus: (
     bookingId: string,
     nextStatus: BookingStatus
@@ -601,10 +608,17 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
   );
 
   const addBooking = useCallback(
-    async (input: AddBookingInput): Promise<BookingRecord> => {
+    async (input: AddBookingInput): Promise<AddBookingResult> => {
       const nights = calculateStayNights(input.checkIn, input.checkOut);
       const estimatedAmount = Math.max(0, nights * input.pricePerNight);
-      const bookingId = `BK-${Date.now().toString(36).toUpperCase()}`;
+      const isRetryForExisting = Boolean(
+        input.existingBookingId &&
+          bookings.some((b) => b.id === input.existingBookingId)
+      );
+      const bookingId =
+        isRetryForExisting && input.existingBookingId
+          ? input.existingBookingId
+          : `BK-${Date.now().toString(36).toUpperCase()}`;
 
       const newRecord: BookingRecord = {
         id: bookingId,
@@ -613,6 +627,7 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
         emailAddress: input.emailAddress,
         roomId: input.roomId,
         roomName: input.roomName,
+        pricePerNight: input.pricePerNight,
         checkIn: input.checkIn,
         checkOut: input.checkOut,
         nights,
@@ -633,18 +648,25 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
         isDemoData: false,
       };
 
-      // Step 1: Save booking into Firestore database BEFORE triggering notifications.
-      try {
-        await saveBookingToFirestore(newRecord);
-      } catch (err) {
-        console.error('Firestore booking persistence failed:', err);
+      // Step 1: Save booking into Firestore database BEFORE triggering notifications (skip duplicate insert on retry).
+      if (!isRetryForExisting) {
+        try {
+          await saveBookingToFirestore(newRecord);
+        } catch (err) {
+          console.error('Firestore booking persistence failed:', err);
+        }
+
+        setBookings((prev) => [newRecord, ...prev]);
+      } else {
+        setBookings((prev) =>
+          prev.map((item) => (item.id === bookingId ? newRecord : item))
+        );
       }
 
-      setBookings((prev) => [newRecord, ...prev]);
-
-      // Step 2: Independently dispatch owner WhatsApp & Formspree email notifications.
-      // Notification failure NEVER invalidates or deletes the saved booking.
-      const idempotencyKey = `${bookingId}-initial`;
+      // Step 2: Dispatch Formspree email & owner WhatsApp notifications and verify Formspree delivery.
+      const idempotencyKey = isRetryForExisting
+        ? `${bookingId}-retry-${Date.now()}`
+        : `${bookingId}-initial`;
       const notifyRes = await hotelApiService.sendBookingNotifications(
         newRecord,
         idempotencyKey
@@ -653,35 +675,46 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
       if (notifyRes.log) {
         const waStatus = notifyRes.log.whatsapp.status;
         const emailStatus = notifyRes.log.email.status;
+        const updatedRecord: BookingRecord = {
+          ...newRecord,
+          whatsappNotificationStatus: waStatus,
+          emailNotificationStatus: emailStatus,
+        };
         setBookings((prev) =>
-          prev.map((item) =>
-            item.id === bookingId
-              ? {
-                  ...item,
-                  whatsappNotificationStatus: waStatus,
-                  emailNotificationStatus: emailStatus,
-                }
-              : item
-          )
+          prev.map((item) => (item.id === bookingId ? updatedRecord : item))
         );
         void refreshNotifications();
-      } else {
-        setBookings((prev) =>
-          prev.map((item) =>
-            item.id === bookingId
-              ? {
-                  ...item,
-                  whatsappNotificationStatus: 'failed',
-                  emailNotificationStatus: 'failed',
-                }
-              : item
-          )
-        );
+
+        const emailDelivered = emailStatus === 'sent';
+        return {
+          booking: updatedRecord,
+          emailDelivered,
+          emailError: emailDelivered
+            ? undefined
+            : notifyRes.log.email.errorMessage ||
+              notifyRes.error ||
+              'Unable to deliver your reservation email right now. Please try again.',
+        };
       }
 
-      return newRecord;
+      const failedRecord: BookingRecord = {
+        ...newRecord,
+        whatsappNotificationStatus: 'failed',
+        emailNotificationStatus: 'failed',
+      };
+      setBookings((prev) =>
+        prev.map((item) => (item.id === bookingId ? failedRecord : item))
+      );
+
+      return {
+        booking: failedRecord,
+        emailDelivered: false,
+        emailError:
+          notifyRes.error ||
+          'Reservation notification service could not be reached. Please check your connection and try again.',
+      };
     },
-    [refreshNotifications]
+    [bookings, refreshNotifications]
   );
 
   const retryBookingNotifications = useCallback(
