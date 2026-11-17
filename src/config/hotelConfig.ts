@@ -15,9 +15,9 @@ export interface NavItem {
 export const HOTEL_NAME = 'RED APPLE HOTEL';
 export const HOTEL_PHONE = '01145730170';
 export const HOTEL_WHATSAPP = '+91 88601 51690';
-export const HOTEL_EMAIL = 'reservations@redapplehotel.com';
+export const HOTEL_EMAIL = 'yogeshjee1987@gmail.com';
 export const HOTEL_ADDRESS =
-  'FLOOR. T.A. 102, Tughlakabad Extension Opposite of Khana Khazana';
+  'Reception 4thFLOOR use lift. T.A. 102, Tughlakabad Extension Opposite of Khana Khazana';
 export const HOTEL_DESCRIPTION =
   'An intimate sanctuary blending thoughtful comfort, well-appointed rooms, and attentive round-the-clock hospitality.';
 

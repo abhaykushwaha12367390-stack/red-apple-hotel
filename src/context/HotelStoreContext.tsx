@@ -399,9 +399,12 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
     const isPlaceholderAddress =
       !stored.address?.trim() ||
       stored.address.trim().startsWith('Your Hotel Street Address');
+    const normalizedEmail = stored.email?.trim().toLowerCase() || '';
     const isPlaceholderEmail =
-      !stored.email?.trim() ||
-      stored.email.trim().toLowerCase() === 'reservations@yourhotelname.com';
+      !normalizedEmail ||
+      normalizedEmail === 'reservations@yourhotelname.com' ||
+      normalizedEmail === 'reservations@redapplehotel.com' ||
+      normalizedEmail === 'yogeshjee1987.com';
 
     return {
       ...defaults,
