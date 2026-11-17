@@ -17,7 +17,7 @@ export const HOTEL_PHONE = '01145730170';
 export const HOTEL_WHATSAPP = '+91 88601 51690';
 export const HOTEL_EMAIL = 'yogeshjee1987@gmail.com';
 export const HOTEL_ADDRESS =
-  'Reception 4thFLOOR use lift. T.A. 102, Tughlakabad Extension Opposite of Khana Khazana';
+  'Reception 4th FLOOR use lift. T.A. 102, Tughlakabad Extension Opposite of Khana Khazana';
 export const HOTEL_DESCRIPTION =
   'An intimate sanctuary blending thoughtful comfort, well-appointed rooms, and attentive round-the-clock hospitality.';
 

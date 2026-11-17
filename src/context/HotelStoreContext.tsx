@@ -396,9 +396,14 @@ export function HotelStoreProvider({ children }: { children: ReactNode }) {
     const isPlaceholderWhatsapp =
       !stored.whatsapp?.trim() ||
       /^0+$/.test(stored.whatsapp.replace(/[^\d]/g, ''));
+    const trimmedAddress = stored.address?.trim() || '';
     const isPlaceholderAddress =
-      !stored.address?.trim() ||
-      stored.address.trim().startsWith('Your Hotel Street Address');
+      !trimmedAddress ||
+      trimmedAddress.startsWith('Your Hotel Street Address') ||
+      trimmedAddress ===
+        'FLOOR. T.A. 102, Tughlakabad Extension Opposite of Khana Khazana' ||
+      trimmedAddress ===
+        'Reception 4thFLOOR use lift. T.A. 102, Tughlakabad Extension Opposite of Khana Khazana';
     const normalizedEmail = stored.email?.trim().toLowerCase() || '';
     const isPlaceholderEmail =
       !normalizedEmail ||
