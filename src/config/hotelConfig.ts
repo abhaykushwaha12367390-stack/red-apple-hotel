@@ -1,5 +1,5 @@
 import heroPosterImage from '@/src/assets/images/hero_hotel_poster_1794602841540.jpg';
-import heroHotelVideo from '@/src/assets/images/hero_hotel_video.mp4.mp4';
+import heroHotelVideo from '@/src/assets/images/hero_hotel_video(1).mp4.mp4';
 import aboutArchitectureImage from '@/src/assets/images/Whatsapp_image40.jpg.png';
 
 export interface NavItem {
